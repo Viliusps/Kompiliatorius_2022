@@ -147,13 +147,13 @@ class BasicExecute:
 if __name__ == '__main__':
 	lexer = BasicLexer()
 	parser = BasicParser()
-	print('GFG Language')
+	print('Snek language')
 	env = {}
 	
 	while True:
 		
 		try:
-			text = input('GFG Language > ')
+			text = input('Snek > ')
 		
 		except EOFError:
 			break
