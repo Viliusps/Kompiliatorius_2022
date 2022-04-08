@@ -22,7 +22,7 @@ class BasicLexer(Lexer):
 		return t
 
 	# Comment token
-	@_(r'//.*')
+	@_(r'#.*')
 	def COMMENT(self, t):
 		pass
 
@@ -150,7 +150,7 @@ class BasicExecute:
 if __name__ == '__main__':
 	lexer = BasicLexer()
 	parser = BasicParser()
-	print('Snek language')
+	print('Snek Language')
 	env = {}
 	
 	while True:
