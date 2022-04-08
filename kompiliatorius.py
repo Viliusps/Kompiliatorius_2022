@@ -99,6 +99,8 @@ class BasicExecute:
 		result = self.walkTree(tree)
 		if result is not None and isinstance(result, int):
 			print(result)
+		elif result is not None and isinstance(result, float):
+			print(result)
 		if isinstance(result, str) and result[0] == '"':
 			print(result)
 
@@ -144,6 +146,7 @@ class BasicExecute:
 			except LookupError:
 				print("Undefined variable '"+node[1]+"' found!")
 				return 0
+
 if __name__ == '__main__':
 	lexer = BasicLexer()
 	parser = BasicParser()
