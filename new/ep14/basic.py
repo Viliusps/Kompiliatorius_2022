@@ -1793,6 +1793,11 @@ class BuiltInFunction(BaseFunction):
     return RTResult().success(Number.true if is_number else Number.false)
   execute_is_function.arg_names = ["value"]
 
+  def execute_security_level(self, exec_ctx):
+    security = exec_ctx.symbol_table.getSecurity("value")
+    return RTResult().success(security)
+  execute_security_level.arg_names = ["value"]
+
   def execute_append(self, exec_ctx):
     list_ = exec_ctx.symbol_table.get("list")
     value = exec_ctx.symbol_table.get("value")
@@ -1921,6 +1926,7 @@ BuiltInFunction.pop         = BuiltInFunction("pop")
 BuiltInFunction.extend      = BuiltInFunction("extend")
 BuiltInFunction.len					= BuiltInFunction("len")
 BuiltInFunction.run					= BuiltInFunction("run")
+BuiltInFunction.security_level = BuiltInFunction("security_level")
 
 #######################################
 # CONTEXT
@@ -2248,6 +2254,7 @@ global_symbol_table.set("POP", BuiltInFunction.pop)
 global_symbol_table.set("EXTEND", BuiltInFunction.extend)
 global_symbol_table.set("LEN", BuiltInFunction.len)
 global_symbol_table.set("RUN", BuiltInFunction.run)
+global_symbol_table.set("SECURITY_LEVEL", BuiltInFunction.security_level)
 
 def run(fn, text):
   # Generate tokens
