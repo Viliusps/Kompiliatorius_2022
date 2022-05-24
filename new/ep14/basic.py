@@ -464,11 +464,12 @@ class WhileNode:
     self.pos_end = self.body_node.pos_end
 
 class FuncDefNode:
-  def __init__(self, var_name_tok, arg_name_toks, body_node, should_auto_return):
+  def __init__(self, var_name_tok, arg_name_toks, body_node, should_auto_return, security_level):
     self.var_name_tok = var_name_tok
     self.arg_name_toks = arg_name_toks
     self.body_node = body_node
     self.should_auto_return = should_auto_return
+    self.security_level=security_level
 
     if self.var_name_tok:
       self.pos_start = self.var_name_tok.pos_start
@@ -699,6 +700,11 @@ class Parser:
         res.register_advancement()
         self.advance()
         var_Security=1
+
+      if self.current_tok.matches(TT_KEYWORD, 'low'):
+        res.register_advancement()
+        self.advance()
+        var_Security=0
 
       if self.current_tok.type != TT_IDENTIFIER:
         return res.failure(InvalidSyntaxError(
@@ -1181,6 +1187,22 @@ class Parser:
     res.register_advancement()
     self.advance()
 
+    var_Security=0
+    if self.current_tok.matches(TT_KEYWORD, 'high'):
+      res.register_advancement()
+      self.advance()
+      var_Security=2
+
+    if self.current_tok.matches(TT_KEYWORD, 'medium'):
+      res.register_advancement()
+      self.advance()
+      var_Security=1
+
+    if self.current_tok.matches(TT_KEYWORD, 'low'):
+      res.register_advancement()
+      self.advance()
+      var_Security=0
+
     if self.current_tok.type == TT_IDENTIFIER:
       var_name_tok = self.current_tok
       res.register_advancement()
@@ -1217,6 +1239,7 @@ class Parser:
             f"Expected identifier"
           ))
 
+
         arg_name_toks.append(self.current_tok)
         res.register_advancement()
         self.advance()
@@ -1233,6 +1256,8 @@ class Parser:
           f"Expected identifier or ')'"
         ))
 
+    
+
     res.register_advancement()
     self.advance()
 
@@ -1247,7 +1272,8 @@ class Parser:
         var_name_tok,
         arg_name_toks,
         body,
-        True
+        True,
+        var_Security
       ))
     
     if self.current_tok.type != TT_NEWLINE:
@@ -1275,7 +1301,8 @@ class Parser:
       var_name_tok,
       arg_name_toks,
       body,
-      False
+      False,
+      var_Security
     ))
 
   ###################################
@@ -1794,7 +1821,7 @@ class BuiltInFunction(BaseFunction):
   execute_is_function.arg_names = ["value"]
 
   def execute_security_level(self, exec_ctx):
-    security = exec_ctx.symbol_table.getSecurity("value")
+    security = exec_ctx.symbol_table.get("value")
     return RTResult().success(security)
   execute_security_level.arg_names = ["value"]
 
@@ -2184,12 +2211,19 @@ class Interpreter:
     res = RTResult()
 
     func_name = node.var_name_tok.value if node.var_name_tok else None
+    var_Security = node.security_level
     body_node = node.body_node
     arg_names = [arg_name.value for arg_name in node.arg_name_toks]
     func_value = Function(func_name, body_node, arg_names, node.should_auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
     
+    for arg_name in arg_names:
+      security_level=context.symbol_table.getSecurity(arg_name)
+      if var_Security<security_level:
+        print("Error")
+
     if node.var_name_tok:
       context.symbol_table.set(func_name, func_value)
+      context.symbol_table.setSecurity(func_name, var_Security)
 
     return res.success(func_value)
 
