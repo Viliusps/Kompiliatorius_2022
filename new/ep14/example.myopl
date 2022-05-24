@@ -1,36 +1,7 @@
-# Pavyzdinis Snek programavimo kalbos kodas
+VAR high a=5
 
-low
-def oopify(prefix) -> prefix + "oop"
+VAR medium b = 6
 
-high
-def join(elements, separator)
-	PRINT("This is a high security level method")
-	VAR result = ""
-	VAR len = LEN(elements)
+VAR c=a+b
 
-	for i = 0 to len then
-		VAR result = result + elements/i
-		if i != len - 1 then VAR result = result + separator
-	end
-
-	return result
-end
-
-medium
-def map(elements, func)
-	PRINT("This is a medium security level method")
-	VAR new_elements = []
-
-	for i = 0 to LEN(elements) then
-		APPEND(new_elements, func(elements/i))
-	end
-
-	return new_elements
-end
-
-PRINT("Greetings universe!")
-
-for i = 0 to 5 then
-	PRINT(join(map(["l", "sp"], oopify), ", "))
-end
+PRINT(c)

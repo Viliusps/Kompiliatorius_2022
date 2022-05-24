@@ -403,9 +403,10 @@ class VarAccessNode:
     self.pos_end = self.var_name_tok.pos_end
 
 class VarAssignNode:
-  def __init__(self, var_name_tok, value_node):
+  def __init__(self, var_name_tok, value_node, security_level):
     self.var_name_tok = var_name_tok
     self.value_node = value_node
+    self.security_level=security_level
 
     self.pos_start = self.var_name_tok.pos_start
     self.pos_end = self.value_node.pos_end
@@ -688,6 +689,17 @@ class Parser:
       res.register_advancement()
       self.advance()
 
+      var_Security=0
+      if self.current_tok.matches(TT_KEYWORD, 'high'):
+        res.register_advancement()
+        self.advance()
+        var_Security=2
+
+      if self.current_tok.matches(TT_KEYWORD, 'medium'):
+        res.register_advancement()
+        self.advance()
+        var_Security=1
+
       if self.current_tok.type != TT_IDENTIFIER:
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
@@ -708,7 +720,7 @@ class Parser:
       self.advance()
       expr = res.register(self.expr())
       if res.error: return res
-      return res.success(VarAssignNode(var_name, expr))
+      return res.success(VarAssignNode(var_name, expr, var_Security))
 
     node = res.register(self.bin_op(self.comp_expr, ((TT_KEYWORD, 'AND'), (TT_KEYWORD, 'OR'))))
 
@@ -1928,6 +1940,7 @@ class Context:
 class SymbolTable:
   def __init__(self, parent=None):
     self.symbols = {}
+    self.security = {}
     self.parent = parent
 
   def get(self, name):
@@ -1936,8 +1949,17 @@ class SymbolTable:
       return self.parent.get(name)
     return value
 
+  def getSecurity(self, name):
+    security_level=self.security.get(name, None)
+    if security_level == None and self.parent:
+      return self.parent.get(name)
+    return security_level
+
   def set(self, name, value):
     self.symbols[name] = value
+
+  def setSecurity(self,name,security_level):
+    self.security[name]=security_level
 
   def remove(self, name):
     del self.symbols[name]
@@ -1983,6 +2005,7 @@ class Interpreter:
     res = RTResult()
     var_name = node.var_name_tok.value
     value = context.symbol_table.get(var_name)
+    security_level=context.symbol_table.getSecurity(var_name)
 
     if not value:
       return res.failure(RTError(
@@ -1998,9 +2021,11 @@ class Interpreter:
     res = RTResult()
     var_name = node.var_name_tok.value
     value = res.register(self.visit(node.value_node, context))
+    security_level = node.security_level
     if res.should_return(): return res
 
     context.symbol_table.set(var_name, value)
+    context.symbol_table.setSecurity(var_name, security_level)
     return res.success(value)
 
   def visit_BinOpNode(self, node, context):
