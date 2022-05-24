@@ -45,6 +45,10 @@ class InvalidSyntaxError(Error):
   def __init__(self, pos_start, pos_end, details=''):
     super().__init__(pos_start, pos_end, 'Invalid Syntax', details)
 
+class InvalidSecurityLevel(Error):
+  def __init__(self, pos_start, pos_end, details=''):
+    super().__init__(pos_start, pos_end, 'Invalid Security Level', details)
+
 class RTError(Error):
   def __init__(self, pos_start, pos_end, details, context):
     super().__init__(pos_start, pos_end, 'Runtime Error', details)
@@ -2219,7 +2223,10 @@ class Interpreter:
     for arg_name in arg_names:
       security_level=context.symbol_table.getSecurity(arg_name)
       if var_Security<security_level:
-        print("Error")
+        return res.failure(InvalidSecurityLevel(
+        node.pos_start, node.pos_end,
+        f"Security level does not meet the requirements"
+      ))
 
     if node.var_name_tok:
       context.symbol_table.set(func_name, func_value)
