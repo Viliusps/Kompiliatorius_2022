@@ -2,9 +2,14 @@ VAR high a=5
 
 VAR medium b = 6
 
-VAR c=a+b
+def low name(a,b)
+	VAR c = a+b
+	return c
+end
 
 PRINT("a security level")
 PRINT(SECURITY_LEVEL(a))
 PRINT("b security level")
 PRINT(SECURITY_LEVEL(b))
+
+PRINT(name(a,b))
