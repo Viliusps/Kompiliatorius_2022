@@ -1,5 +1,6 @@
 # This is a very useful piece of software
 
+low
 def oopify(prefix) -> prefix + "oop"
 
 high
@@ -15,6 +16,7 @@ def join(elements, separator)
 	return result
 end
 
+medium
 def map(elements, func)
 	VAR new_elements = []
 
