@@ -125,8 +125,8 @@ TT_EOF				= 'EOF'
 
 KEYWORDS = [
   'high',
-  '[low]',
-  '[medium]',
+  'low',
+  'medium',
   '[access]',
   'VAR',
   'AND',
@@ -645,7 +645,23 @@ class Parser:
         self.reverse(res.to_reverse_count)
       return res.success(SecurityNode(pos_start, self.current_tok.pos_start.copy()))
     
+    if self.current_tok.matches(TT_KEYWORD, 'low'):
+      res.register_advancement()
+      self.advance()
 
+      expr = res.try_register(self.expr())
+      if not expr:
+        self.reverse(res.to_reverse_count)
+      return res.success(SecurityNode(pos_start, self.current_tok.pos_start.copy()))
+
+    if self.current_tok.matches(TT_KEYWORD, 'medium'):
+      res.register_advancement()
+      self.advance()
+
+      expr = res.try_register(self.expr())
+      if not expr:
+        self.reverse(res.to_reverse_count)
+      return res.success(SecurityNode(pos_start, self.current_tok.pos_start.copy()))
     
     if self.current_tok.matches(TT_KEYWORD, 'continue'):
       res.register_advancement()
