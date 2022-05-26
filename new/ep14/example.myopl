@@ -2,7 +2,7 @@ VAR high a=5
 
 VAR medium b = 6
 
-def medium name(a, b)
+def medium name(a, b) access
 	VAR c = a+b
 	return c
 end

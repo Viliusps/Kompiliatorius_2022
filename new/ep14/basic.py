@@ -131,7 +131,7 @@ KEYWORDS = [
   'high',
   'low',
   'medium',
-  '[access]',
+  'access',
   'VAR',
   'AND',
   'OR',
@@ -468,12 +468,13 @@ class WhileNode:
     self.pos_end = self.body_node.pos_end
 
 class FuncDefNode:
-  def __init__(self, var_name_tok, arg_name_toks, body_node, should_auto_return, security_level):
+  def __init__(self, var_name_tok, arg_name_toks, body_node, should_auto_return, security_level, access):
     self.var_name_tok = var_name_tok
     self.arg_name_toks = arg_name_toks
     self.body_node = body_node
     self.should_auto_return = should_auto_return
     self.security_level=security_level
+    self.access=access
 
     if self.var_name_tok:
       self.pos_start = self.var_name_tok.pos_start
@@ -1265,6 +1266,15 @@ class Parser:
     res.register_advancement()
     self.advance()
 
+
+    var_Access=0
+    if self.current_tok.matches(TT_KEYWORD, 'access'):
+      res.register_advancement()
+      self.advance()
+      var_Access=1
+
+
+
     if self.current_tok.type == TT_ARROW:
       res.register_advancement()
       self.advance()
@@ -1277,7 +1287,8 @@ class Parser:
         arg_name_toks,
         body,
         True,
-        var_Security
+        var_Security,
+        var_Access
       ))
     
     if self.current_tok.type != TT_NEWLINE:
@@ -1306,7 +1317,8 @@ class Parser:
       arg_name_toks,
       body,
       False,
-      var_Security
+      var_Security,
+      var_Access
     ))
 
   ###################################
@@ -2216,13 +2228,14 @@ class Interpreter:
 
     func_name = node.var_name_tok.value if node.var_name_tok else None
     var_Security = node.security_level
+    var_Access=node.access
     body_node = node.body_node
     arg_names = [arg_name.value for arg_name in node.arg_name_toks]
     func_value = Function(func_name, body_node, arg_names, node.should_auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
     
     for arg_name in arg_names:
       security_level=context.symbol_table.getSecurity(arg_name)
-      if var_Security<security_level:
+      if var_Security<security_level and var_Access==0:
         return res.failure(InvalidSecurityLevel(
         node.pos_start, node.pos_end,
         f"Security level does not meet the requirements"
