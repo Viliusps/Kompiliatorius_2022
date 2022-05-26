@@ -1,14 +1,14 @@
-VAR low n = 5
+var low n = 5
 def fibonacci(n)
-	VAR a = 1
-	VAR b = 1
-	PRINT(a)
-	PRINT(b)
+	var a = 1
+	var b = 1
+	print(a)
+	print(b)
 	for i = 0 to n then
-		VAR temp = a
-		VAR a = a + b
-		VAR b = temp
-		PRINT(a)
+		var temp = a
+		var a = a + b
+		var b = temp
+		print(a)
 	end
 end
 

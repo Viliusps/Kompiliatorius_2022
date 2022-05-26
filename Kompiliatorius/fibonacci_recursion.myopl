@@ -1,4 +1,4 @@
-VAR low n = 6
+var low n = 6
 
 
 def fibonacci(n)
@@ -10,5 +10,5 @@ def fibonacci(n)
 end
 
 for i=1 to n+1 then
-	PRINT(fibonacci(i))
+	print(fibonacci(i))
 end

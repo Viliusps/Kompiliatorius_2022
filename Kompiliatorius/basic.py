@@ -132,7 +132,7 @@ KEYWORDS = [
   'low',
   'medium',
   'access',
-  'VAR',
+  'var',
   'AND',
   'OR',
   'NOT',
@@ -684,14 +684,14 @@ class Parser:
     if res.error:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected 'return', 'continue', 'break', 'VAR', 'if', 'for', 'while', 'def', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
+        "Expected 'return', 'continue', 'break', 'var', 'if', 'for', 'while', 'def', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
       ))
     return res.success(expr)
 
   def expr(self):
     res = ParseResult()
 
-    if self.current_tok.matches(TT_KEYWORD, 'VAR'):
+    if self.current_tok.matches(TT_KEYWORD, 'var'):
       res.register_advancement()
       self.advance()
 
@@ -738,7 +738,7 @@ class Parser:
     if res.error:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected 'VAR', 'if', 'for', 'while', 'def', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
+        "Expected 'var', 'if', 'for', 'while', 'def', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
       ))
 
     return res.success(node)
@@ -805,7 +805,7 @@ class Parser:
         if res.error:
           return res.failure(InvalidSyntaxError(
             self.current_tok.pos_start, self.current_tok.pos_end,
-            "Expected ')', 'VAR', 'if', 'for', 'while', 'def', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
+            "Expected ')', 'var', 'if', 'for', 'while', 'def', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
           ))
 
         while self.current_tok.type == TT_COMMA:
@@ -912,7 +912,7 @@ class Parser:
       if res.error:
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
-          "Expected ']', 'VAR', 'if', 'for', 'while', 'def', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
+          "Expected ']', var, 'if', 'for', 'while', 'def', int, float, identifier, '+', '-', '(', '[' or 'NOT'"
         ))
 
       while self.current_tok.type == TT_COMMA:
@@ -2294,7 +2294,7 @@ global_symbol_table.set("NULL", Number.null)
 global_symbol_table.set("FALSE", Number.false)
 global_symbol_table.set("TRUE", Number.true)
 global_symbol_table.set("MATH_PI", Number.math_PI)
-global_symbol_table.set("PRINT", BuiltInFunction.print)
+global_symbol_table.set("print", BuiltInFunction.print)
 global_symbol_table.set("PRINT_RET", BuiltInFunction.print_ret)
 global_symbol_table.set("INPUT", BuiltInFunction.input)
 global_symbol_table.set("INPUT_INT", BuiltInFunction.input_int)
