@@ -1,1 +1,0 @@
-# Kompiliatorius_2022
