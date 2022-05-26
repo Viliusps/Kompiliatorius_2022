@@ -1,0 +1,16 @@
+VAR high n = 5
+VAR medium testing = 7
+def medium fibonacci(n, testing) access
+	VAR a = 1
+	VAR b = 1
+	PRINT(a)
+	PRINT(b)
+	for i = 0 to n then
+		VAR temp = a
+		VAR a = a + b
+		VAR b = temp
+		PRINT(a)
+	end
+end
+
+fibonacci(n, testing)

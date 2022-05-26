@@ -1,7 +1,0 @@
-VAR high a=5
-
-VAR medium b = 6
-
-VAR c=a+b
-
-PRINT(c)

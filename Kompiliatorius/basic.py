@@ -45,6 +45,10 @@ class InvalidSyntaxError(Error):
   def __init__(self, pos_start, pos_end, details=''):
     super().__init__(pos_start, pos_end, 'Invalid Syntax', details)
 
+class InvalidSecurityLevel(Error):
+  def __init__(self, pos_start, pos_end, details=''):
+    super().__init__(pos_start, pos_end, 'Invalid Security Level', details)
+
 class RTError(Error):
   def __init__(self, pos_start, pos_end, details, context):
     super().__init__(pos_start, pos_end, 'Runtime Error', details)
@@ -127,7 +131,7 @@ KEYWORDS = [
   'high',
   'low',
   'medium',
-  '[access]',
+  'access',
   'VAR',
   'AND',
   'OR',
@@ -464,11 +468,13 @@ class WhileNode:
     self.pos_end = self.body_node.pos_end
 
 class FuncDefNode:
-  def __init__(self, var_name_tok, arg_name_toks, body_node, should_auto_return):
+  def __init__(self, var_name_tok, arg_name_toks, body_node, should_auto_return, security_level, access):
     self.var_name_tok = var_name_tok
     self.arg_name_toks = arg_name_toks
     self.body_node = body_node
     self.should_auto_return = should_auto_return
+    self.security_level=security_level
+    self.access=access
 
     if self.var_name_tok:
       self.pos_start = self.var_name_tok.pos_start
@@ -699,6 +705,11 @@ class Parser:
         res.register_advancement()
         self.advance()
         var_Security=1
+
+      if self.current_tok.matches(TT_KEYWORD, 'low'):
+        res.register_advancement()
+        self.advance()
+        var_Security=0
 
       if self.current_tok.type != TT_IDENTIFIER:
         return res.failure(InvalidSyntaxError(
@@ -1181,6 +1192,22 @@ class Parser:
     res.register_advancement()
     self.advance()
 
+    var_Security=0
+    if self.current_tok.matches(TT_KEYWORD, 'high'):
+      res.register_advancement()
+      self.advance()
+      var_Security=2
+
+    if self.current_tok.matches(TT_KEYWORD, 'medium'):
+      res.register_advancement()
+      self.advance()
+      var_Security=1
+
+    if self.current_tok.matches(TT_KEYWORD, 'low'):
+      res.register_advancement()
+      self.advance()
+      var_Security=0
+
     if self.current_tok.type == TT_IDENTIFIER:
       var_name_tok = self.current_tok
       res.register_advancement()
@@ -1217,6 +1244,7 @@ class Parser:
             f"Expected identifier"
           ))
 
+
         arg_name_toks.append(self.current_tok)
         res.register_advancement()
         self.advance()
@@ -1233,8 +1261,19 @@ class Parser:
           f"Expected identifier or ')'"
         ))
 
+    
+
     res.register_advancement()
     self.advance()
+
+
+    var_Access=0
+    if self.current_tok.matches(TT_KEYWORD, 'access'):
+      res.register_advancement()
+      self.advance()
+      var_Access=1
+
+
 
     if self.current_tok.type == TT_ARROW:
       res.register_advancement()
@@ -1247,7 +1286,9 @@ class Parser:
         var_name_tok,
         arg_name_toks,
         body,
-        True
+        True,
+        var_Security,
+        var_Access
       ))
     
     if self.current_tok.type != TT_NEWLINE:
@@ -1275,7 +1316,9 @@ class Parser:
       var_name_tok,
       arg_name_toks,
       body,
-      False
+      False,
+      var_Security,
+      var_Access
     ))
 
   ###################################
@@ -1793,6 +1836,11 @@ class BuiltInFunction(BaseFunction):
     return RTResult().success(Number.true if is_number else Number.false)
   execute_is_function.arg_names = ["value"]
 
+  def execute_security_level(self, exec_ctx):
+    security = exec_ctx.symbol_table.get("value")
+    return RTResult().success(security)
+  execute_security_level.arg_names = ["value"]
+
   def execute_append(self, exec_ctx):
     list_ = exec_ctx.symbol_table.get("list")
     value = exec_ctx.symbol_table.get("value")
@@ -1921,6 +1969,7 @@ BuiltInFunction.pop         = BuiltInFunction("pop")
 BuiltInFunction.extend      = BuiltInFunction("extend")
 BuiltInFunction.len					= BuiltInFunction("len")
 BuiltInFunction.run					= BuiltInFunction("run")
+BuiltInFunction.security_level = BuiltInFunction("security_level")
 
 #######################################
 # CONTEXT
@@ -2178,12 +2227,24 @@ class Interpreter:
     res = RTResult()
 
     func_name = node.var_name_tok.value if node.var_name_tok else None
+    var_Security = node.security_level
+    var_Access=node.access
     body_node = node.body_node
     arg_names = [arg_name.value for arg_name in node.arg_name_toks]
     func_value = Function(func_name, body_node, arg_names, node.should_auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
     
+    for arg_name in arg_names:
+      security_level=context.symbol_table.getSecurity(arg_name)
+      if var_Security<security_level and var_Access==0:
+        return res.failure(InvalidSecurityLevel(
+        node.pos_start, node.pos_end,
+        f"Security level does not meet the requirements"
+      ))
+
     if node.var_name_tok:
       context.symbol_table.set(func_name, func_value)
+      context.symbol_table.setSecurity(func_name, var_Security)
+
 
     return res.success(func_value)
 
@@ -2248,6 +2309,7 @@ global_symbol_table.set("POP", BuiltInFunction.pop)
 global_symbol_table.set("EXTEND", BuiltInFunction.extend)
 global_symbol_table.set("LEN", BuiltInFunction.len)
 global_symbol_table.set("RUN", BuiltInFunction.run)
+global_symbol_table.set("SECURITY_LEVEL", BuiltInFunction.security_level)
 
 def run(fn, text):
   # Generate tokens
