@@ -2245,6 +2245,7 @@ class Interpreter:
       context.symbol_table.set(func_name, func_value)
       context.symbol_table.setSecurity(func_name, var_Security)
 
+
     return res.success(func_value)
 
   def visit_CallNode(self, node, context):
